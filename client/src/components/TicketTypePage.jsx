@@ -21,7 +21,9 @@ function TicketTypePage() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen relative">
-      <img src={logo} alt="Rosatom Logo" className="absolute top-5 left-5 w-16" />
+      <a href="/">
+        <img src={logo} alt="Rosatom Logo" className="absolute top-3 left-5 w-14"/>
+      </a>
       <h1 className="text-2xl font-bold mb-8">Каким способом вы путешествовали?</h1>
       
       <div className="flex space-x-8 mb-8">
@@ -50,7 +52,7 @@ function TicketTypePage() {
         onClick={handleNext} 
         disabled={!selectedTicket}
         className={`px-6 py-3 text-lg rounded-lg shadow-md transition ${
-          selectedTicket ? 'bg-black-600 text-white hover:bg-green-700' : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+          selectedTicket ? 'bg-black-600 text-white hover:bg-blue-800 hover:shadow-2xl hover:shadow-purple-500/50 hover:ring-4 hover:ring-blue-500 hover:ring-opacity-20' : 'bg-gray-400 text-gray-200 cursor-not-allowed'
         }`}
       >
         Далее

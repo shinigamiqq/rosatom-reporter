@@ -1,13 +1,19 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaCloudUploadAlt } from "react-icons/fa";
+import { useNavigate, useLocation } from "react-router-dom";
+import { FaCloudUploadAlt, FaCheckCircle } from "react-icons/fa";
 import logo from "../assets/images/rosatom-logo.png";
 
 function TicketUploadPage() {
   const BASE_URL = "http://192.168.0.120:8000";
   const navigate = useNavigate();
+  const location = useLocation();
+  const userInfo = location.state || {};
   const [ticketType, setTicketType] = useState(localStorage.getItem('ticketType') || "air");
   const [files, setFiles] = useState({ ticketFile: null, hotelFile: null });
+  const [uploaded, setUploaded] = useState({ ticketFile: false, hotelFile: false });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [uploadComplete, setUploadComplete] = useState(false);
 
   useEffect(() => {
     if (!ticketType) {
@@ -16,7 +22,11 @@ function TicketUploadPage() {
   }, [ticketType, navigate]);
 
   const handleFileChange = (e) => {
-    setFiles((prev) => ({ ...prev, [e.target.name]: e.target.files[0] }));
+    const { name, files } = e.target;
+    if (files.length > 0) {
+      setFiles((prev) => ({ ...prev, [name]: files[0] }));
+      setUploaded((prev) => ({ ...prev, [name]: true }));
+    }
   };
 
   const getUploadUrl = (file, type) => {
@@ -32,31 +42,51 @@ function TicketUploadPage() {
     const formData = new FormData();
     formData.append("file", file);
     const response = await fetch(url, { method: "POST", body: formData });
+    if (!response.ok) {
+      throw new Error("Ошибка при загрузке файла");
+    }
     return response.json();
   };
 
   const handleUpload = async () => {
-    if (files.ticketFile) {
-      const url = getUploadUrl(files.ticketFile, ticketType);
-      await uploadFile(files.ticketFile, url);
+    if (!files.ticketFile || !files.hotelFile) {
+      setError("Загрузите все файлы перед продолжением");
+      return;
     }
-    if (files.hotelFile) {
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const ticketUrl = getUploadUrl(files.ticketFile, ticketType);
+      await uploadFile(files.ticketFile, ticketUrl);
       await uploadFile(files.hotelFile, `${BASE_URL}/hotel_checks`);
+
+      setUploadComplete(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    navigate('/final-page');
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
-      <img src={logo} alt="Rosatom Logo" className="absolute top-5 left-5 w-16" />
+      <a href="/">
+        <img src={logo} alt="Rosatom Logo" className="absolute top-3 left-5 w-14"/>
+      </a>
       <h1 className="text-2xl font-bold mb-8">Загрузка документов</h1>
-      
+
       <div className="flex flex-col space-y-6">
         <div>
           <h2 className="text-lg font-semibold mb-2">Билеты</h2>
           <label className="flex flex-col items-center justify-center w-64 h-40 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer">
-            <FaCloudUploadAlt size={50} className="text-gray-500 mb-2" />
-            <span className="text-gray-600">Загрузите файл</span>
+            {uploaded.ticketFile ? (
+              <FaCheckCircle size={50} className="text-green-500 mb-2" />
+            ) : (
+              <FaCloudUploadAlt size={50} className="text-gray-500 mb-2" />
+            )}
+            <span className="text-gray-600">{uploaded.ticketFile ? "Файл загружен" : "Выберите файл"}</span>
             <input type="file" name="ticketFile" onChange={handleFileChange} className="hidden" />
           </label>
         </div>
@@ -64,19 +94,37 @@ function TicketUploadPage() {
         <div>
           <h2 className="text-lg font-semibold mb-2">Отель</h2>
           <label className="flex flex-col items-center justify-center w-64 h-40 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer">
-            <FaCloudUploadAlt size={50} className="text-gray-500 mb-2" />
-            <span className="text-gray-600">Загрузите файл</span>
+            {uploaded.hotelFile ? (
+              <FaCheckCircle size={50} className="text-green-500 mb-2" />
+            ) : (
+              <FaCloudUploadAlt size={50} className="text-gray-500 mb-2" />
+            )}
+            <span className="text-gray-600">{uploaded.hotelFile ? "Файл загружен" : "Выберите файл"}</span>
             <input type="file" name="hotelFile" onChange={handleFileChange} className="hidden" />
           </label>
         </div>
       </div>
 
-      <button 
-        onClick={handleUpload} 
-        className="mt-8 px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-lg hover:bg-blue-700 transition"
-      >
-        Загрузить файлы
-      </button>
+      {error && <p className="text-red-500 mt-4">{error}</p>}
+
+      {!uploadComplete ? (
+        <button 
+          onClick={handleUpload} 
+          className="mt-8 px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-lg hover:bg-blue-800 transition disabled:opacity-50"
+          disabled={loading}
+        >
+          {loading ? "Загрузка..." : "Загрузить файлы"}
+        </button>
+      ) : (
+        <button 
+          onClick={() => {
+            navigate('/final', { replace: true, state: files });
+          }} 
+          className="mt-8 px-6 py-3 bg-green-600 text-white text-lg rounded-lg shadow-lg hover:bg-green-800 transition"
+        >
+          Продолжить
+        </button>
+      )}
     </div>
   );
 }
