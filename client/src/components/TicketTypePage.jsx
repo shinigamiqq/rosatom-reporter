@@ -1,0 +1,62 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FaPlane, FaTrain } from 'react-icons/fa';
+import logo from "../assets/images/rosatom-logo.png";
+
+function TicketTypePage() {
+  const navigate = useNavigate();
+  const [selectedTicket, setSelectedTicket] = useState(localStorage.getItem('ticketType') || null);
+
+  useEffect(() => {
+    if (selectedTicket) {
+      localStorage.setItem('ticketType', selectedTicket);
+    }
+  }, [selectedTicket]);
+
+  const handleNext = () => {
+    if (selectedTicket) {
+      navigate('/ticket-upload');
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center h-screen relative">
+      <img src={logo} alt="Rosatom Logo" className="absolute top-5 left-5 w-16" />
+      <h1 className="text-2xl font-bold mb-8">Каким способом вы путешествовали?</h1>
+      
+      <div className="flex space-x-8 mb-8">
+        <button 
+          onClick={() => setSelectedTicket('air')} 
+          className={`flex flex-col items-center justify-center w-56 h-56 rounded-2xl shadow-lg transition ${
+            selectedTicket === 'air' ? 'bg-blue-800 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
+        >
+          <FaPlane size={60} className="mb-4" />
+          <span className="text-lg">Авиабилеты</span>
+        </button>
+
+        <button 
+          onClick={() => setSelectedTicket('train')} 
+          className={`flex flex-col items-center justify-center w-56 h-56 rounded-2xl shadow-lg transition ${
+            selectedTicket === 'train' ? 'bg-blue-800 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+          }`}
+        >
+          <FaTrain size={60} className="mb-4" />
+          <span className="text-lg">ЖД билеты</span>
+        </button>
+      </div>
+
+      <button 
+        onClick={handleNext} 
+        disabled={!selectedTicket}
+        className={`px-6 py-3 text-lg rounded-lg shadow-md transition ${
+          selectedTicket ? 'bg-black-600 text-white hover:bg-green-700' : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+        }`}
+      >
+        Далее
+      </button>
+    </div>
+  );
+}
+
+export default TicketTypePage;
