@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaPlane, FaTrain } from 'react-icons/fa';
 import logo from "../assets/images/rosatom-logo.png";
 
 function TicketTypePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const userInfo = location.state || {};
   const [selectedTicket, setSelectedTicket] = useState(localStorage.getItem('ticketType') || null);
 
   useEffect(() => {
@@ -15,7 +17,7 @@ function TicketTypePage() {
 
   const handleNext = () => {
     if (selectedTicket) {
-      navigate('/ticket-upload');
+      navigate('/ticket-upload', { state: { userInfo, ticketType: selectedTicket } });
     }
   };
 

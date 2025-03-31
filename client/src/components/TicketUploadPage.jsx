@@ -14,6 +14,7 @@ function TicketUploadPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [parsedData, setParsedData] = useState({});
 
   useEffect(() => {
     if (!ticketType) {
@@ -59,15 +60,24 @@ function TicketUploadPage() {
 
     try {
       const ticketUrl = getUploadUrl(files.ticketFile, ticketType);
-      await uploadFile(files.ticketFile, ticketUrl);
-      await uploadFile(files.hotelFile, `${BASE_URL}/hotel_checks`);
+      const ticketData = await uploadFile(files.ticketFile, ticketUrl);
+      const hotelData = await uploadFile(files.hotelFile, `${BASE_URL}/hotel_checks`);
 
+      setParsedData({
+        ticketData: { Date: ticketData.Date, Price: ticketData.Price },
+        hotelData: { Date: hotelData.Date, Price: hotelData.Price }
+      });
+      console.log(ticketData);
       setUploadComplete(true);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getTranslatedTicketType = (ticketType) => {
+    return ticketType === 'air' ? 'Авиабилеты' : ticketType === 'train' ? 'Ж/Д билеты' : ticketType;
   };
 
   return (
@@ -118,7 +128,9 @@ function TicketUploadPage() {
       ) : (
         <button 
           onClick={() => {
-            navigate('/final', { replace: true, state: files });
+            const translatedTicketType = getTranslatedTicketType(ticketType);  // Преобразование типа билета
+            const { ticketData, hotelData } = parsedData;
+            navigate('/final', { state: { userInfo, ticketType: translatedTicketType, ticketData, hotelData } });
           }} 
           className="mt-8 px-6 py-3 bg-green-600 text-white text-lg rounded-lg shadow-lg hover:bg-green-800 transition"
         >

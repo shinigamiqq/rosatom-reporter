@@ -17,7 +17,7 @@ export default function WelcomePage() {
         <img src={logo} alt="Rosatom Logo" className="absolute top-3 left-5 w-14"/>
       </a>
       <button 
-        className="px-10 py-3 text-white bg-black-600 rounded-lg text-xl shadow-lg hover:bg-blue-800 hover:shadow-2xl hover:shadow-purple-500/50 hover:ring-4 hover:ring-blue-500 hover:ring-opacity-20 transition" 
+        className="px-10 py-3 text-white bg-black-600 rounded-lg text-3xl shadow-lg hover:bg-blue-800 hover:shadow-2xl hover:shadow-purple-500/50 hover:ring-4 hover:ring-blue-500 hover:ring-opacity-20 transition" 
         onClick={() => navigate('/user-info')}
       >
         Начать

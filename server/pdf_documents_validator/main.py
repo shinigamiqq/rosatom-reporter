@@ -25,7 +25,7 @@ async def post_pdf_train_documents(file:UploadFile = File(...)):
     print(text[0])
     price_match = re.search(r"(?:Итого|Вкл\. НДС)\s*(\d{1,3}(?: \d{3})*(?:,\d{2})?)", text[0])
     price = price_match.group(1) if price_match else "Цена не найдена"
-    return {"Date": date, "Price": price}
+    return {"Date": date, "Price": float(price.replace(" ", "").replace("\xa0", "").replace(",", "."))}
 
 @app.post('/pdf_air_documents')
 async def post_pdf_air_documents(file:UploadFile = File(...)):

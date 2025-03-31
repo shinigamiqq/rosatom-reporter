@@ -5,10 +5,9 @@ import logo from "../assets/images/rosatom-logo.png";
 function FinalPage() {
   const BASE_URL = "http://192.168.0.120:8000";
   const location = useLocation();
-  const parsedData = location.state || {};
-  console.log("Полученные данные:", parsedData);
-
-  console.log("Полученные данные:", parsedData);
+  const { userInfo, ticketType, ticketData, hotelData } = location.state || {};
+  console.log("Полученные данные:", { userInfo, ticketType, ticketData, hotelData });
+  console.log("Userinfo perday: ", userInfo.userInfo.perDay);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -18,17 +17,17 @@ function FinalPage() {
     setError(null);
 
     const requestData = {
-      full_name: parsedData.fullName || "Неизвестно",
-      department: parsedData.department || "Неизвестно",
-      id: parsedData.id || 0,
-      rang: parsedData.rank || "Неизвестно",
-      ticket_date: parsedData.ticketData?.Date || "Неизвестно",
-      ticket_type: parsedData.ticketType || "Неизвестно",
-      ticket_price: parsedData.ticketData?.Price ? parseFloat(parsedData.ticketData.Price.replace(/\s/g, "")) : 0,
-      hotel_date: parsedData.hotelData?.Date || "Неизвестно",
-      hotel_name: parsedData.hotelName || "Неизвестно",
-      hotel_price: parsedData.hotelData?.Price ? parseFloat(parsedData.hotelData.Price.replace(/\s/g, "")) : 0,
-      daily_allowance: parsedData.dailyAllowance ? parseFloat(parsedData.dailyAllowance) : 0
+      full_name: userInfo.userInfo.name || "Неизвестно",
+      department: userInfo.userInfo.department || "Неизвестно",
+      id: userInfo.userInfo.id || 0,
+      rang: userInfo.userInfo.rang || "Неизвестно",
+      ticket_date: ticketData?.Date || "Неизвестно",
+      ticket_type: ticketType || "Неизвестно",
+      ticket_price: ticketData?.Price || 0,
+      hotel_date: hotelData?.Date || "Неизвестно",
+      hotel_name: "Неизвестно",
+      hotel_price: hotelData?.Price || 0,
+      daily_allowance: userInfo.userInfo.perDay || 0
     };
 
     try {
