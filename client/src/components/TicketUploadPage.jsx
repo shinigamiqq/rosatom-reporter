@@ -64,7 +64,7 @@ function TicketUploadPage() {
       const hotelData = await uploadFile(files.hotelFile, `${BASE_URL}/hotel_checks`);
 
       setParsedData({
-        ticketData: { Date: ticketData.Date, Price: ticketData.Price },
+        ticketData: { Date: ticketData.Date, Price: ticketData.Price, Ticket: ticketData.Ticket },
         hotelData: { Date: hotelData.Date, Price: hotelData.Price }
       });
       console.log(ticketData);

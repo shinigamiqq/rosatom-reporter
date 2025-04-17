@@ -16,6 +16,7 @@ class ReportData(BaseModel):
     ticket_date: str
     ticket_type: str
     ticket_price: float
+    id_ticket: str
     hotel_date: str
     hotel_name: str
     hotel_price: float
@@ -36,6 +37,7 @@ async def create_report(data: ReportData):
     ws["AU13"] = data.id
     ws["G15"] = data.rang
     ws["C26"] = data.ticket_date
+    ws["G26"] = data.id_ticket
     ws["M26"] = data.ticket_type
     ws["Y26"] = data.ticket_price
     ws["C25"] = data.hotel_date

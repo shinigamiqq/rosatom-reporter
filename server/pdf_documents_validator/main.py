@@ -19,13 +19,15 @@ async def post_pdf_train_documents(file:UploadFile = File(...)):
     except Exception as e:
         return{"error": str(e)}
 
+    id_match = re.search(r"\b\d{2} \d{3} \d{3} \d{3} \d{3}", text[0])
+    id_ticket = id_match.group(0) if id_match else "Номер эл. билета не найден"
     date_match = re.search(r"(?:Оформлен:)\s*(\b\d{2}\.\d{2}\.\d{4}\b)", text[0])
     date = date_match.group(1) if date_match else "Дата не найдена"
 
     print(text[0])
     price_match = re.search(r"(?:Итого|Вкл\. НДС)\s*(\d{1,3}(?: \d{3})*(?:,\d{2})?)", text[0])
     price = price_match.group(1) if price_match else "Цена не найдена"
-    return {"Date": date, "Price": float(price.replace(" ", "").replace("\xa0", "").replace(",", "."))}
+    return {"Date": date, "Price": float(price.replace(" ", "").replace("\xa0", "").replace(",", ".")), "Ticket": id_ticket}
 
 @app.post('/pdf_air_documents')
 async def post_pdf_air_documents(file:UploadFile = File(...)):
@@ -38,7 +40,10 @@ async def post_pdf_air_documents(file:UploadFile = File(...)):
                 text[num] = page.get_text()
     except Exception as e:
         return {"error": str(e)}
+    print(text[0])
 
+    id_match = re.search(r"\b\d{13}\b", text[0])
+    id_ticket = id_match.group(0) if id_match else "Номер эл. билета не найден"
     date_pattern = (r"\b\d{2}\.\d{2}\.\d{4}\b|\b\d{2} (января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря) 202\d\b")
     date_match = re.search(date_pattern, text[0], re.IGNORECASE)
     date = date_match.group(0) if date_match else "Дата не найдена"
@@ -59,7 +64,7 @@ async def post_pdf_air_documents(file:UploadFile = File(...)):
 
     print("prices:", prices)
 
-    return {"Date": processed_date, "Price": max_price}
+    return {"Date": processed_date, "Price": max_price, "Ticket": id_ticket}
 
 @app.post('/pdf_hotel_documents')
 async def post_pdf_hotel_documents(file: UploadFile = File(...)):

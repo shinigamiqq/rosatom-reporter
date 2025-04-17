@@ -24,6 +24,7 @@ function FinalPage() {
       ticket_date: ticketData?.Date || "Неизвестно",
       ticket_type: ticketType || "Неизвестно",
       ticket_price: ticketData?.Price || 0,
+      id_ticket: ticketData?.Ticket || "Неизвестно",
       hotel_date: hotelData?.Date || "Неизвестно",
       hotel_name: "Неизвестно",
       hotel_price: hotelData?.Price || 0,

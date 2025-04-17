@@ -19,6 +19,9 @@ async def post_png_train_documents(file: UploadFile = File(...)):
 
     print(text)
 
+    id_match = re.search(r"\b\d{2} \d{3} \d{3} \d{3} \d{3}", text)
+    id_ticket = id_match.group(0) if id_match else "Номер эл. билета не найден"
+
     date_match = re.search(r"\b\d{2}\.\d{2}\.\d{4}\b", text)
     date = date_match.group(0) if date_match else "Дата не найдена"
 
@@ -27,7 +30,8 @@ async def post_png_train_documents(file: UploadFile = File(...)):
 
     print(f"Дата поездки: {date}")
     print(f"Цена билета: {price} руб.")
-    return {"Date": date, "Price": price}
+    print(f"Номер эл. билета: {id_ticket}")
+    return {"Date": date, "Price": float(price.replace(" ", "").replace("\xa0", "").replace(",", ".")), "Ticket": id_ticket}
 
 @app.post('/air_png_documents')
 async def post_png_air_documents(file: UploadFile = File(...)):
@@ -36,7 +40,10 @@ async def post_png_air_documents(file: UploadFile = File(...)):
 
     text = pytesseract.image_to_string(image, lang="rus+eng")
     reversed_text = "\n".join(reversed(text.splitlines()))
+    print(text)
 
+    id_match = re.search(r"\b\d{13}\b", text)
+    id_ticket = id_match.group(0) if id_match else "Номер эл. билета не найден"
     date_pattern = (r"\b\d{2}\.\d{2}\.\d{4}\b|\b\d{2} (января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря) 202\d\b")
     date_match = re.search(date_pattern, text, re.IGNORECASE)
     date = date_match.group(0) if date_match else "Дата не найдена"
@@ -46,7 +53,8 @@ async def post_png_air_documents(file: UploadFile = File(...)):
 
     print(f"Дата поездки: {date}")
     print(f"Цена билета: {price} руб.")
-    return {"Date": date, "Price": price}
+    print(f"Номер эл. билета: {id_ticket}")
+    return {"Date": date, "Price": float(price.replace(" ", "").replace("\xa0", "").replace(",", ".")), "Ticket": id_ticket}
 
 @app.post('/hotel_checks')
 async def post_png_hotel_checks(file: UploadFile = File(...)):
@@ -68,7 +76,6 @@ async def post_png_hotel_checks(file: UploadFile = File(...)):
             date = "Дата не найдена"
 
         print(f"Дата: {date}")
-        print(f"Цена: {price} руб.")
         '''
         rect_points = qr.polygon
         if len(rect_points) == 4:
