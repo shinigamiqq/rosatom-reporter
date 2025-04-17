@@ -5,3 +5,7 @@ pytesseract
 paddlepaddle
 paddleocr
 python-multipart
+dateparser
+pyzbar
+pymupdf
+openpyxl
