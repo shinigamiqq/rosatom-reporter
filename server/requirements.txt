@@ -9,3 +9,4 @@ dateparser
 pyzbar
 pymupdf
 openpyxl
+pdf2image

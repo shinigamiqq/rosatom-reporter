@@ -7,6 +7,7 @@ import dateparser
 import cv2
 import numpy as np
 from pyzbar.pyzbar import decode
+from pdf2image import convert_from_bytes
 
 app = APIRouter()
 
@@ -58,10 +59,12 @@ async def post_png_air_documents(file: UploadFile = File(...)):
 
 @app.post('/hotel_checks')
 async def post_png_hotel_checks(file: UploadFile = File(...)):
-    extenstion_match = re.search(r"\b.(jpg|png|jpeg)\b", file.filename)
+    file_bytes = await file.read()
+    extenstion_match = re.search(r"\b.(jpg|png|jpeg|pdf)\b", file.filename)
     extension = extenstion_match.group(0) if extenstion_match else "Некорректное расширение файла"
+    print(extension)
     if extension == ".jpg" or extension == ".png" or extension == ".jpeg":
-        image = Image.open(io.BytesIO(await file.read()))
+        image = Image.open(io.BytesIO(file_bytes))
         image_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
         qr_codes = decode(image)
         for qr in qr_codes:
@@ -93,3 +96,24 @@ async def post_png_hotel_checks(file: UploadFile = File(...)):
             cv2.imwrite("processed_photo.png", image_cv)
             '''
             return {"Date": date, "Price": price}
+    if extension == ".pdf":
+        pages = convert_from_bytes(file_bytes, 500)
+        for page in pages:
+            qr_codes = decode(page)
+
+            for qr in qr_codes:
+                qr_data = qr.data.decode('utf-8')
+                print("QR-data:", qr_data)
+
+                date_match = re.search(r't=(\d{4})(\d{2})(\d{2})T', qr_data)
+                price_match = re.search(r's=([\d\.]+)', qr_data)
+
+                price = price_match.group(1) if price_match else "Цена не найдена"
+
+                if date_match:
+                    date = f"{date_match.group(3)}.{date_match.group(2)}.{date_match.group(1)}"
+                else:
+                    date = "Дата не найдена"
+
+                print(f"Дата: {date}, Цена: {price}")
+                return {"Date": date, "Price": price}
