@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import logo from "../assets/images/rosatom-logo.png";
 
 function FinalPage() {
-  const BASE_URL = "http://192.168.0.120";
+  const BASE_URL = "http://192.168.0.120:8000";
   const location = useLocation();
   const { userInfo, ticketType, ticketData, hotelData } = location.state || {};
   console.log("Полученные данные:", { userInfo, ticketType, ticketData, hotelData });
@@ -32,7 +32,7 @@ function FinalPage() {
     };
 
     try {
-      const response = await fetch(`${BASE_URL}:8005/create_report`, {
+      const response = await fetch(`${BASE_URL}/report/create_report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData)
