@@ -1,21 +1,54 @@
 version: "3.8"
 
 services:
-  frontend:
-    build:
-      context: ./client
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - employee_validator
+      - pdf_documents_validator
+      - png_documents_validator
+      - report_xlsx
+
+  employee_validator:
+    build: 
+      context: ./employee_validator
       dockerfile: Dockerfile
+    container_name: employee_validator
+    ports:
+      - "8001:8000"
+
+  pdf_documents_validator:
+    build: 
+      context: ./pdf_documents_validator
+      dockerfile: Dockerfile
+    container_name: pdf_documents_validator
+    ports:
+      - "8003:8000"
+
+  png_documents_validator:
+    build: 
+      context: ./png_documents_validator
+      dockerfile: Dockerfile
+    container_name: png_documents_validator
+    ports:
+      - "8004:8000"
+
+  report_xlsx:
+    build: 
+      context: ./report_xlsx
+      dockerfile: Dockerfile
+    container_name: report_xlsx
+    ports:
+      - "8005:8000"
+
+  frontend:
+    build: ./client
     ports:
       - "3000:80"
     depends_on:
-      - backend
-    restart: unless-stopped
-
-  backend:
-    build:
-      context: ./server
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    restart: unless-stopped
+      - nginx
 

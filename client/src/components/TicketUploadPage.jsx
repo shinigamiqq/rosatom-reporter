@@ -4,7 +4,7 @@ import { FaCloudUploadAlt, FaCheckCircle } from "react-icons/fa";
 import logo from "../assets/images/rosatom-logo.png";
 
 function TicketUploadPage() {
-  const BASE_URL = "http://192.168.0.120:8000";
+  const BASE_URL = "http://192.168.0.120";
   const navigate = useNavigate();
   const location = useLocation();
   const userInfo = location.state || {};
@@ -33,9 +33,9 @@ function TicketUploadPage() {
   const getUploadUrl = (file, type) => {
     const isPdf = file.type === "application/pdf";
     if (type === "air") {
-      return isPdf ? `${BASE_URL}/pdf_air_documents` : `${BASE_URL}/air_png_documents`;
+      return isPdf ? `${BASE_URL}:8003/pdf_air_documents` : `${BASE_URL}:8004/air_png_documents`;
     } else {
-      return isPdf ? `${BASE_URL}/pdf_train_documents` : `${BASE_URL}/train_png_documents`;
+      return isPdf ? `${BASE_URL}:8003/pdf_train_documents` : `${BASE_URL}:8004/train_png_documents`;
     }
   };
 
@@ -61,7 +61,7 @@ function TicketUploadPage() {
     try {
       const ticketUrl = getUploadUrl(files.ticketFile, ticketType);
       const ticketData = await uploadFile(files.ticketFile, ticketUrl);
-      const hotelData = await uploadFile(files.hotelFile, `${BASE_URL}/hotel_checks`);
+      const hotelData = await uploadFile(files.hotelFile, `${BASE_URL}:8004/hotel_checks`);
 
       setParsedData({
         ticketData: { Date: ticketData.Date, Price: ticketData.Price, Ticket: ticketData.Ticket },

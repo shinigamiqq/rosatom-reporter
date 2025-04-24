@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pillow
+pytesseract
+paddlepaddle
+paddleocr
+python-multipart
+pyzbar
+pdf2image

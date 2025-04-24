@@ -1,16 +1,23 @@
-from fastapi import APIRouter, File, UploadFile
+from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 import pytesseract
 from PIL import Image
 import re
 import io
-import dateparser
 import cv2
 import numpy as np
 from pyzbar.pyzbar import decode
 from pdf2image import convert_from_bytes
 
-app = APIRouter()
+app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post('/train_png_documents')
 async def post_png_train_documents(file: UploadFile = File(...)):
