@@ -8,9 +8,8 @@ function TicketUploadPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const userInfo = location.state || {};
-  const [ticketType, setTicketType] = useState(localStorage.getItem('ticketType') || "air");
-  const [files, setFiles] = useState({ ticketFile: null, hotelFile: null });
-  const [uploaded, setUploaded] = useState({ ticketFile: false, hotelFile: false });
+  const [ticketType, setTicketType] = useState(localStorage.getItem("ticketType") || "air");
+  const [files, setFiles] = useState({ ticketFile: [], hotelFile: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [uploadComplete, setUploadComplete] = useState(false);
@@ -18,40 +17,66 @@ function TicketUploadPage() {
 
   useEffect(() => {
     if (!ticketType) {
-      navigate('/ticket-type');
+      navigate("/ticket-type");
     }
   }, [ticketType, navigate]);
 
   const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    if (files.length > 0) {
-      setFiles((prev) => ({ ...prev, [name]: files[0] }));
-      setUploaded((prev) => ({ ...prev, [name]: true }));
-    }
+    const { name, files: selectedFiles } = e.target;
+    setFiles((prev) => ({
+      ...prev,
+      [name]: Array.from(selectedFiles),
+    }));
   };
 
-  const getUploadUrl = (file, type) => {
-    const isPdf = file.type === "application/pdf";
-    if (type === "air") {
+  const splitFilesByType = (fileArray) => {
+    const pdfFiles = [];
+    const imageFiles = [];
+
+    for (const file of fileArray) {
+      if (file.type === "application/pdf") {
+        pdfFiles.push(file);
+      } else if (
+        file.type === "image/png" ||
+        file.type === "image/jpeg" ||
+        file.type === "image/jpg"
+      ) {
+        imageFiles.push(file);
+      }
+    }
+
+    return { pdfFiles, imageFiles };
+  };
+
+  const getUploadUrl = (isPdf) => {
+    if (ticketType === "air") {
       return isPdf ? `${BASE_URL}/pdf/pdf_air_documents` : `${BASE_URL}/png/air_png_documents`;
     } else {
       return isPdf ? `${BASE_URL}/pdf/pdf_train_documents` : `${BASE_URL}/png/train_png_documents`;
     }
   };
 
-  const uploadFile = async (file, url) => {
+  const uploadFiles = async (filesArray, url) => {
     const formData = new FormData();
-    formData.append("file", file);
-    const response = await fetch(url, { method: "POST", body: formData });
+    filesArray.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    const response = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+
     if (!response.ok) {
-      throw new Error("Ошибка при загрузке файла");
+      throw new Error("Ошибка при загрузке файлов");
     }
-    return response.json();
+
+    return await response.json();
   };
 
   const handleUpload = async () => {
-    if (!files.ticketFile || !files.hotelFile) {
-      setError("Загрузите все файлы перед продолжением");
+    if (files.ticketFile.length === 0 || files.hotelFile.length === 0) {
+      setError("Загрузите все необходимые файлы");
       return;
     }
 
@@ -59,15 +84,29 @@ function TicketUploadPage() {
     setError(null);
 
     try {
-      const ticketUrl = getUploadUrl(files.ticketFile, ticketType);
-      const ticketData = await uploadFile(files.ticketFile, ticketUrl);
-      const hotelData = await uploadFile(files.hotelFile, `${BASE_URL}/png/hotel_checks`);
+      const { pdfFiles, imageFiles } = splitFilesByType(files.ticketFile);
+      const ticketDataList = [];
+
+      if (pdfFiles.length > 0) {
+        const pdfUrl = getUploadUrl(true);
+        const pdfData = await uploadFiles(pdfFiles, pdfUrl);
+        ticketDataList.push(...pdfData);
+      }
+
+      if (imageFiles.length > 0) {
+        const imgUrl = getUploadUrl(false);
+        const imgData = await uploadFiles(imageFiles, imgUrl);
+        ticketDataList.push(...imgData);
+      }
+
+      const hotelUrl = `${BASE_URL}/png/hotel_checks`;
+      const hotelDataList = await uploadFiles(files.hotelFile, hotelUrl);
 
       setParsedData({
-        ticketData: { Date: ticketData.Date, Price: ticketData.Price, Ticket: ticketData.Ticket },
-        hotelData: { Date: hotelData.Date, Price: hotelData.Price }
+        ticketData: ticketDataList,
+        hotelData: hotelDataList,
       });
-      console.log(ticketData);
+
       setUploadComplete(true);
     } catch (err) {
       setError(err.message);
@@ -76,62 +115,68 @@ function TicketUploadPage() {
     }
   };
 
-  const getTranslatedTicketType = (ticketType) => {
-    return ticketType === 'air' ? 'Авиабилеты' : ticketType === 'train' ? 'Ж/Д билеты' : ticketType;
+  const getTranslatedTicketType = (type) => {
+    return type === "air" ? "Авиабилеты" : type === "train" ? "Ж/Д билеты" : type;
+  };
+
+  const renderFileUpload = (label, name) => {
+    const uploadedCount = files[name]?.length || 0;
+
+    return (
+      <div>
+        <h2 className="text-lg font-semibold mb-2">{label}</h2>
+        <label className="flex flex-col items-center justify-center w-64 h-40 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer text-center">
+          {uploadedCount > 0 ? (
+            <FaCheckCircle size={50} className="text-green-500 mb-2" />
+          ) : (
+            <FaCloudUploadAlt size={50} className="text-gray-500 mb-2" />
+          )}
+          <span className="text-gray-600">
+            {uploadedCount > 0
+              ? `Загружено файлов: ${uploadedCount}`
+              : "Выберите один или несколько файлов"}
+          </span>
+          <input type="file" name={name} multiple onChange={handleFileChange} className="hidden" />
+        </label>
+      </div>
+    );
   };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       <a href="/">
-        <img src={logo} alt="Rosatom Logo" className="absolute top-3 left-5 w-14"/>
+        <img src={logo} alt="Rosatom Logo" className="absolute top-3 left-5 w-14" />
       </a>
+
       <h1 className="text-2xl font-bold mb-8">Загрузка документов</h1>
 
       <div className="flex flex-col space-y-6">
-        <div>
-          <h2 className="text-lg font-semibold mb-2">Билеты</h2>
-          <label className="flex flex-col items-center justify-center w-64 h-40 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer">
-            {uploaded.ticketFile ? (
-              <FaCheckCircle size={50} className="text-green-500 mb-2" />
-            ) : (
-              <FaCloudUploadAlt size={50} className="text-gray-500 mb-2" />
-            )}
-            <span className="text-gray-600">{uploaded.ticketFile ? "Файл загружен" : "Выберите файл"}</span>
-            <input type="file" name="ticketFile" onChange={handleFileChange} className="hidden" />
-          </label>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-semibold mb-2">Отель</h2>
-          <label className="flex flex-col items-center justify-center w-64 h-40 border-2 border-dashed border-gray-400 rounded-lg cursor-pointer">
-            {uploaded.hotelFile ? (
-              <FaCheckCircle size={50} className="text-green-500 mb-2" />
-            ) : (
-              <FaCloudUploadAlt size={50} className="text-gray-500 mb-2" />
-            )}
-            <span className="text-gray-600">{uploaded.hotelFile ? "Файл загружен" : "Выберите файл"}</span>
-            <input type="file" name="hotelFile" onChange={handleFileChange} className="hidden" />
-          </label>
-        </div>
+        {renderFileUpload("Билеты", "ticketFile")}
+        {renderFileUpload("Отель", "hotelFile")}
       </div>
 
       {error && <p className="text-red-500 mt-4">{error}</p>}
 
       {!uploadComplete ? (
-        <button 
-          onClick={handleUpload} 
+        <button
+          onClick={handleUpload}
           className="mt-8 px-6 py-3 bg-blue-600 text-white text-lg rounded-lg shadow-lg hover:bg-blue-800 transition disabled:opacity-50"
           disabled={loading}
         >
           {loading ? "Загрузка..." : "Загрузить файлы"}
         </button>
       ) : (
-        <button 
+        <button
           onClick={() => {
-            const translatedTicketType = getTranslatedTicketType(ticketType);  // Преобразование типа билета
-            const { ticketData, hotelData } = parsedData;
-            navigate('/final', { state: { userInfo, ticketType: translatedTicketType, ticketData, hotelData } });
-          }} 
+            navigate("/final", {
+              state: {
+                userInfo,
+                ticketType: getTranslatedTicketType(ticketType),
+                ticketData: parsedData.ticketData,
+                hotelData: parsedData.hotelData,
+              },
+            });
+          }}
           className="mt-8 px-6 py-3 bg-green-600 text-white text-lg rounded-lg shadow-lg hover:bg-green-800 transition"
         >
           Продолжить
