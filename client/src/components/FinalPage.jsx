@@ -62,12 +62,12 @@ function FinalPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col bg-gray-900 items-center justify-center h-screen">
       <a href="/">
         <img src={logo} alt="Rosatom Logo" className="absolute top-3 left-5 w-14" />
       </a>
       <h1 className="text-2xl font-bold mb-6">Проверьте данные</h1>
-      <p className="text-gray-700 mb-6">
+      <p className="text-gray-700 text-center mb-6">
         Убедитесь, что все данные корректны перед созданием отчета.
       </p>
 
@@ -76,7 +76,7 @@ function FinalPage() {
       <button
         onClick={handleSubmit}
         disabled={loading}
-        className={`px-6 py-3 text-lg rounded-lg shadow-md transition ${
+        className={`px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-lg shadow-md transition-all ${
           loading
             ? "bg-gray-400 cursor-not-allowed"
             : "bg-black-600 text-white hover:bg-blue-800 hover:shadow-2xl hover:shadow-purple-500/50 hover:ring-4 hover:ring-blue-500 hover:ring-opacity-10"

@@ -143,7 +143,7 @@ function TicketUploadPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col bg-gray-900 items-center justify-center h-screen">
       <a href="/">
         <img src={logo} alt="Rosatom Logo" className="absolute top-3 left-5 w-14" />
       </a>
